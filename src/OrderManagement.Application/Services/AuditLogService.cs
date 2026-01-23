@@ -1,6 +1,6 @@
-﻿using OrderManagement.Application.Contracts;
-using OrderManagement.Application.Repositories;
+﻿using OrderManagement.Application.Repositories;
 using OrderManagement.Application.Services.Abstractions;
+using OrderManagement.Domain.Common.Results;
 using OrderManagement.Domain.Entities;
 
 namespace OrderManagement.Application.Services;
@@ -14,6 +14,6 @@ public class AuditLogService(IAuditLogRepository repository) : IAuditLogService
     public async Task<OperationResult<IEnumerable<AuditLog>>> GetAllAsync(int limit = 100)
     {
         var auditLogs = await repository.GetAllAsync(limit);
-        return Result.Success(auditLogs);
+        return Outcome.Success(auditLogs);
     }
 }

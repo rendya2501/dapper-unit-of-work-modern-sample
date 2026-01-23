@@ -1,5 +1,5 @@
-﻿using OrderManagement.Application.Contracts;
-using OrderManagement.Application.Models;
+﻿using OrderManagement.Application.Models;
+using OrderManagement.Domain.Common.Results;
 using OrderManagement.Domain.Entities;
 
 namespace OrderManagement.Application.Services.Abstractions;

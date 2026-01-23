@@ -1,9 +1,8 @@
 ﻿using OrderManagement.Application.Common;
-using OrderManagement.Application.Contracts;
 using OrderManagement.Application.Repositories;
 using OrderManagement.Application.Services.Abstractions;
+using OrderManagement.Domain.Common.Results;
 using OrderManagement.Domain.Entities;
-using OrderManagement.Domain.Exceptions;
 
 namespace OrderManagement.Application.Services;
 
@@ -22,7 +21,7 @@ public class InventoryService(
     public async Task<OperationResult<IEnumerable<Inventory>>> GetAllAsync()
     {
         var inventories = await inventory.GetAllAsync();
-        return Result.Success(inventories);
+        return Outcome.Success(inventories);
     }
 
     /// <inheritdoc />
@@ -31,18 +30,16 @@ public class InventoryService(
         var inventoryEntity = await inventory.GetByProductIdAsync(productId);
         if (inventoryEntity is null)
         {
-            return Result.NotFound($"Inventory not found for productId: {productId}");
+            return Outcome.NotFound($"Inventory not found for productId: {productId}");
         }
-        return Result.Success(inventoryEntity);
+        return Outcome.Success(inventoryEntity);
     }
 
     /// <inheritdoc />
     public async Task<OperationResult<int>> CreateAsync(string productName, int stock, decimal unitPrice)
     {
-        try
+        return await uow.ExecuteInTransactionAsync(async () =>
         {
-            await uow.BeginTransactionAsync();
-
             var productId = await inventory.CreateAsync(new Inventory
             {
                 ProductName = productName,
@@ -57,28 +54,19 @@ public class InventoryService(
                 CreatedAt = DateTime.UtcNow
             });
 
-            await uow.CommitAsync();
-            return Result.Success(productId);
-        }
-        catch
-        {
-            await uow.RollbackAsync();
-            throw;
-        }
+            return Outcome.Success(productId);
+        });
     }
 
     /// <inheritdoc />
     public async Task<OperationResult> UpdateAsync(int productId, string productName, int stock, decimal unitPrice)
     {
-        try
+        return await uow.ExecuteInTransactionAsync(async () =>
         {
-            await uow.BeginTransactionAsync();
-
             var existing = await inventory.GetByProductIdAsync(productId);
             if (existing is null)
             {
-                await uow.RollbackAsync();
-                return Result.NotFound($"Product not found for productId: {productId}");
+                return Outcome.NotFound($"Product not found for productId: {productId}");
             }
 
             await inventory.UpdateAsync(productId, productName, stock, unitPrice);
@@ -90,28 +78,19 @@ public class InventoryService(
                 CreatedAt = DateTime.UtcNow
             });
 
-            await uow.CommitAsync();
-            return Result.Success();
-        }
-        catch
-        {
-            await uow.RollbackAsync();
-            throw;
-        }
+            return Outcome.Success();
+        });
     }
 
     /// <inheritdoc />
     public async Task<OperationResult> DeleteAsync(int productId)
     {
-        try
+        return await uow.ExecuteInTransactionAsync(async () =>
         {
-            await uow.BeginTransactionAsync();
-
             var existing = await inventory.GetByProductIdAsync(productId);
             if (existing is null)
             {
-                await uow.RollbackAsync();
-                return Result.NotFound($"Product not found for productId: {productId}");
+                return Outcome.NotFound($"Product not found for productId: {productId}");
             }
 
             await inventory.DeleteAsync(productId);
@@ -123,13 +102,7 @@ public class InventoryService(
                 CreatedAt = DateTime.UtcNow
             });
 
-            await uow.CommitAsync();
-            return Result.Success();
-        }
-        catch
-        {
-            await uow.RollbackAsync();
-            throw;
-        }
+            return Outcome.Success();
+        });
     }
 }

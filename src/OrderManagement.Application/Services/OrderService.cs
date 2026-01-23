@@ -1,8 +1,8 @@
 ﻿using OrderManagement.Application.Common;
-using OrderManagement.Application.Contracts;
 using OrderManagement.Application.Models;
 using OrderManagement.Application.Repositories;
 using OrderManagement.Application.Services.Abstractions;
+using OrderManagement.Domain.Common.Results;
 using OrderManagement.Domain.Entities;
 
 namespace OrderManagement.Application.Services;
@@ -29,13 +29,11 @@ public class OrderService(
     /// <inheritdoc />
     public async Task<OperationResult<int>> CreateOrderAsync(int customerId, List<OrderItem> items)
     {
-        try
+        return await uow.ExecuteInTransactionAsync(async () =>
         {
-            await uow.BeginTransactionAsync();
-
             if (items.Count == 0)
             {
-                return Result.BusinessRuleValidation("Order must have at least one item.");
+                return Outcome.BusinessRule("", "Order must have at least one item.");
             }
 
             // 1. 注文集約を構築
@@ -51,14 +49,12 @@ public class OrderService(
                 var productEntity = await inventory.GetByProductIdAsync(item.ProductId);
                 if (productEntity is null)
                 {
-                    await uow.RollbackAsync();
-                    return Result.NotFound($"Product not found for productId: {item.ProductId}");
+                    return Outcome.NotFound($"Product not found for productId: {item.ProductId}");
                 }
 
                 if (productEntity.Stock < item.Quantity)
                 {
-                    await uow.RollbackAsync();
-                    return Result.BusinessRuleValidation(
+                    return Outcome.BusinessRule("",
                         $"Insufficient stock for {productEntity.ProductName}. " +
                         $"Available: {productEntity.Stock}, Requested: {item.Quantity}");
                 }
@@ -84,21 +80,15 @@ public class OrderService(
                 CreatedAt = DateTime.UtcNow
             });
 
-            await uow.CommitAsync();
-            return Result.Success(orderId);
-        }
-        catch
-        {
-            await uow.RollbackAsync();
-            throw;
-        }
+            return Outcome.Success(orderId);
+        });
     }
 
     /// <inheritdoc />
     public async Task<OperationResult<IEnumerable<Order>>> GetAllOrdersAsync()
     {
         var orders = await order.GetAllAsync();
-        return Result.Success(orders);
+        return Outcome.Success(orders);
     }
 
     /// <inheritdoc />
@@ -107,8 +97,8 @@ public class OrderService(
         var orderEntity = await order.GetByIdAsync(id);
         if (orderEntity is null)
         {
-            return Result.NotFound($"Order not found for id: {id}");
+            return Outcome.NotFound($"Order not found for id: {id}");
         }
-        return Result.Success(orderEntity);
+        return Outcome.Success(orderEntity);
     }
 }

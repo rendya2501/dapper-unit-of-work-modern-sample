@@ -9,7 +9,6 @@ using OrderManagement.Application.Services.Abstractions;
 using OrderManagement.Infrastructure.Persistence;
 using OrderManagement.Infrastructure.Persistence.Database;
 using OrderManagement.Infrastructure.Persistence.Repositories;
-using OrderManagement.Infrastructure.Persistence.UnitOfWork.Basic;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
