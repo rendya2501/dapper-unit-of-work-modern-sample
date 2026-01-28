@@ -18,8 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OrderManagement.Application\OrderManagement.Application.csproj" />
-    <ProjectReference Include="..\OrderManagement.Infrastructure\OrderManagement.Infrastructure.csproj" />
+    <ProjectReference Include="..\OrderManagement.Application\Application.csproj" />
+    <ProjectReference Include="..\OrderManagement.Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
