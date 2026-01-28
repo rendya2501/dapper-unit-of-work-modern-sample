@@ -1,10 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
-using OrderManagement.Application.Common;
-using OrderManagement.Domain.Common.Results;
+﻿using Application.Common;
+using Domain.Common.Results;
+using Microsoft.Extensions.Logging;
 using System.Data;
 using System.Data.Common;
 
-namespace OrderManagement.Infrastructure.Persistence;
+namespace Infrastructure.Persistence;
 
 /// <summary>
 /// <see cref="IUnitOfWork"/> の具象実装クラス。

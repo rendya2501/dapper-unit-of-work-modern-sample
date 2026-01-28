@@ -1,12 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using OrderManagement.Api.Contracts.Requests;
-using OrderManagement.Api.Contracts.Responses;
-using OrderManagement.Api.Extensions;
-using OrderManagement.Application.Models;
-using OrderManagement.Application.Services.Abstractions;
-using OrderManagement.Domain.Entities;
+﻿using Application.Models;
+using Application.Services.Abstractions;
+using Domain.Entities;
+using Microsoft.AspNetCore.Mvc;
+using Web.Api.Contracts.Requests;
+using Web.Api.Contracts.Responses;
+using Web.Api.Extensions;
 
-namespace OrderManagement.Api.Controllers;
+namespace Web.Api.Controllers;
 
 /// <summary>
 /// 注文関連のAPIエンドポイント

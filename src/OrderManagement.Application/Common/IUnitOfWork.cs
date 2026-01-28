@@ -1,6 +1,6 @@
-﻿using OrderManagement.Domain.Common.Results;
+﻿using Domain.Common.Results;
 
-namespace OrderManagement.Application.Common;
+namespace Application.Common;
 
 /// <summary>
 /// トランザクション管理を提供するUnit of Workインターフェース

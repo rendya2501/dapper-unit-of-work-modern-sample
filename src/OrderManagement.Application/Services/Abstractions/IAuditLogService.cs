@@ -1,7 +1,7 @@
-﻿using OrderManagement.Domain.Common.Results;
-using OrderManagement.Domain.Entities;
+﻿using Domain.Common.Results;
+using Domain.Entities;
 
-namespace OrderManagement.Application.Services.Abstractions;
+namespace Application.Services.Abstractions;
 
 /// <summary>
 /// 監査ログサービスのインターフェース

@@ -1,6 +1,6 @@
 ﻿using System.Data;
 
-namespace OrderManagement.Application.Common;
+namespace Application.Common;
 
 /// <summary>
 /// データベースセッションの管理用インターフェース。

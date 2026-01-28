@@ -1,10 +1,10 @@
-﻿using OrderManagement.Application.Common;
-using OrderManagement.Application.Repositories;
-using OrderManagement.Application.Services.Abstractions;
-using OrderManagement.Domain.Common.Results;
-using OrderManagement.Domain.Entities;
+﻿using Application.Common;
+using Application.Repositories;
+using Application.Services.Abstractions;
+using Domain.Common.Results;
+using Domain.Entities;
 
-namespace OrderManagement.Application.Services;
+namespace Application.Services;
 
 /// <summary>
 /// 在庫サービスの実装

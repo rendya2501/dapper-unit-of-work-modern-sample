@@ -1,4 +1,4 @@
-﻿namespace OrderManagement.Domain.Exceptions;
+﻿namespace Domain.Exceptions;
 
 /// <summary>
 /// リソースが見つからない場合にスローされる例外

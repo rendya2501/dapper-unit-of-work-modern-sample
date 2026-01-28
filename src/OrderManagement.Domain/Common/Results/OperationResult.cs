@@ -1,4 +1,4 @@
-﻿namespace OrderManagement.Domain.Common.Results;
+﻿namespace Domain.Common.Results;
 
 /// <summary>
 /// 値を返す操作の結果を表現する型

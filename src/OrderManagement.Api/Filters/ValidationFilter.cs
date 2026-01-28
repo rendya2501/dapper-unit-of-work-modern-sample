@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace OrderManagement.Api.Filters;
+namespace Web.Api.Filters;
 
 /// <summary>
 /// FluentValidation を自動実行する Action Filter

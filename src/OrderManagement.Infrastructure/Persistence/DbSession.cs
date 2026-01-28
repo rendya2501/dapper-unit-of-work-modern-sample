@@ -1,7 +1,7 @@
-﻿using OrderManagement.Application.Common;
+﻿using Application.Common;
 using System.Data;
 
-namespace OrderManagement.Infrastructure.Persistence;
+namespace Infrastructure.Persistence;
 
 /// <summary>
 /// データベースセッションの実装クラス。

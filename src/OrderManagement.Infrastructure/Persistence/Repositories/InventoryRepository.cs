@@ -1,9 +1,9 @@
-﻿using Dapper;
-using OrderManagement.Application.Common;
-using OrderManagement.Application.Repositories;
-using OrderManagement.Domain.Entities;
+﻿using Application.Common;
+using Application.Repositories;
+using Dapper;
+using Domain.Entities;
 
-namespace OrderManagement.Infrastructure.Persistence.Repositories;
+namespace Infrastructure.Persistence.Repositories;
 
 /// <summary>
 /// 在庫リポジトリの実装

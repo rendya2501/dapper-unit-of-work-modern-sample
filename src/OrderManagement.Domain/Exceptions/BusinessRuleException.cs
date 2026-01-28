@@ -1,4 +1,4 @@
-﻿namespace OrderManagement.Domain.Exceptions;
+﻿namespace Domain.Exceptions;
 
 /// <summary>
 /// ビジネスルール違反の場合にスローされる例外

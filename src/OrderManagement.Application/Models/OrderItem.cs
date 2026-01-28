@@ -1,4 +1,4 @@
-﻿namespace OrderManagement.Application.Models;
+﻿namespace Application.Models;
 
 /// <summary>
 /// 注文アイテム（Application層のDTO）

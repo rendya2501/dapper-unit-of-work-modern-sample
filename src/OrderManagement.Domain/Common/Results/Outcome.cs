@@ -1,4 +1,4 @@
-﻿namespace OrderManagement.Domain.Common.Results;
+﻿namespace Domain.Common.Results;
 
 /// <summary>
 /// 操作結果を生成するファクトリクラス

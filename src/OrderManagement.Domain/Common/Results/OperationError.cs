@@ -1,4 +1,4 @@
-﻿namespace OrderManagement.Domain.Common.Results;
+﻿namespace Domain.Common.Results;
 
 /// <summary>
 /// 操作失敗の理由を表す識別可能な型

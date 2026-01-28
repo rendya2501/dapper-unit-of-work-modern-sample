@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Data.Common;
 
-namespace OrderManagement.Api.Middleware;
+namespace Web.Api.Middleware;
 
 /// <summary>
 /// すべての例外を ProblemDetails 形式で返すミドルウェア

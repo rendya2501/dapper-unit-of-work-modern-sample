@@ -1,16 +1,16 @@
+using Application.Common;
+using Application.Repositories;
+using Application.Services;
+using Application.Services.Abstractions;
 using FluentValidation;
+using Infrastructure.Persistence;
+using Infrastructure.Persistence.Database;
+using Infrastructure.Persistence.Repositories;
 using Microsoft.Data.Sqlite;
-using OrderManagement.Api.Filters;
-using OrderManagement.Api.Middleware;
-using OrderManagement.Application.Common;
-using OrderManagement.Application.Repositories;
-using OrderManagement.Application.Services;
-using OrderManagement.Application.Services.Abstractions;
-using OrderManagement.Infrastructure.Persistence;
-using OrderManagement.Infrastructure.Persistence.Database;
-using OrderManagement.Infrastructure.Persistence.Repositories;
 using Scalar.AspNetCore;
 using System.Data;
+using Web.Api.Filters;
+using Web.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 

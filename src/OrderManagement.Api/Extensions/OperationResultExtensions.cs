@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using OrderManagement.Api.Contracts.Responses;
-using OrderManagement.Domain.Common.Results;
+﻿using Domain.Common.Results;
+using Microsoft.AspNetCore.Mvc;
+using Web.Api.Contracts.Responses;
 
-namespace OrderManagement.Api.Extensions;
+namespace Web.Api.Extensions;
 
 /// <summary>
 /// <see cref="OperationResult{T}"/> および <see cref="OperationResult"/> を

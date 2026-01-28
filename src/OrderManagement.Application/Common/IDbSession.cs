@@ -1,6 +1,6 @@
 ﻿using System.Data;
 
-namespace OrderManagement.Application.Common;
+namespace Application.Common;
 
 /// <summary>
 /// 現在のデータベースセッション（接続およびトランザクション）へのアクセスを提供します。

@@ -1,6 +1,6 @@
-﻿using OrderManagement.Domain.Entities;
+﻿using Domain.Entities;
 
-namespace OrderManagement.Application.Repositories;
+namespace Application.Repositories;
 
 /// <summary>
 /// 在庫リポジトリのインターフェース

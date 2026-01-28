@@ -1,4 +1,4 @@
-﻿namespace OrderManagement.Domain.Common.Results;
+﻿namespace Domain.Common.Results;
 
 /// <summary>
 /// ビジネスルール違反のエラーコード定義

@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using OrderManagement.Api.Extensions;
-using OrderManagement.Application.Services.Abstractions;
-using OrderManagement.Domain.Entities;
+﻿using Application.Services.Abstractions;
+using Domain.Entities;
+using Microsoft.AspNetCore.Mvc;
+using Web.Api.Extensions;
 
-namespace OrderManagement.Api.Controllers;
+namespace Web.Api.Controllers;
 
 /// <summary>
 /// 監査ログAPIエンドポイント

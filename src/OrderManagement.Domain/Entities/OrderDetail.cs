@@ -1,4 +1,4 @@
-﻿namespace OrderManagement.Domain.Entities;
+﻿namespace Domain.Entities;
 
 /// <summary>
 /// 注文明細エンティティ
