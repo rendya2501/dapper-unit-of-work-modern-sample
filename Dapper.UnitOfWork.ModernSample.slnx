@@ -1,6 +1,12 @@
 <Solution>
-  <Project Path="src/OrderManagement.Api/Web.Api.csproj" />
-  <Project Path="src/OrderManagement.Application/Application.csproj" />
-  <Project Path="src/OrderManagement.Domain/Domain.csproj" />
-  <Project Path="src/OrderManagement.Infrastructure/Infrastructure.csproj" />
+  <Folder Name="/Solution Items/">
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/OrderManagement.Api/Web.Api.csproj" />
+    <Project Path="src/OrderManagement.Application/Application.csproj" />
+    <Project Path="src/OrderManagement.Domain/Domain.csproj" />
+    <Project Path="src/OrderManagement.Infrastructure/Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
 </Solution>
