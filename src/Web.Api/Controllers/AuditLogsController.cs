@@ -1,5 +1,5 @@
-﻿using Application.Services.Abstractions;
-using Domain.Entities;
+﻿using Application.Services;
+using Domain.AuditLog;
 using Microsoft.AspNetCore.Mvc;
 using Web.Api.Extensions;
 
@@ -10,7 +10,7 @@ namespace Web.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class AuditLogsController(IAuditLogService auditLogService) : ControllerBase
+public class AuditLogsController(AuditLogService auditLogService) : ControllerBase
 {
     /// <summary>
     /// すべての監査ログを取得します
@@ -21,7 +21,7 @@ public class AuditLogsController(IAuditLogService auditLogService) : ControllerB
     [ProducesResponseType(typeof(IEnumerable<AuditLog>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllAsync([FromQuery] int limit = 100, CancellationToken cancellationToken = default)
     {
-        var logs = await auditLogService.GetAllAsync(limit, cancellationToken);
-        return logs.ToActionResult(this, Ok);
+        var result = await auditLogService.GetAllAsync(limit, cancellationToken);
+        return result.ToOk();
     }
 }

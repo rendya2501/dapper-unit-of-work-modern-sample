@@ -1,4 +1,4 @@
-﻿namespace Domain.Entities;
+﻿namespace Domain.Orders;
 
 /// <summary>
 /// 注文エンティティ（集約ルート）

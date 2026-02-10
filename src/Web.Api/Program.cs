@@ -1,7 +1,6 @@
 using Application.Common;
 using Application.Repositories;
 using Application.Services;
-using Application.Services.Abstractions;
 using FluentValidation;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Database;
@@ -9,6 +8,7 @@ using Infrastructure.Persistence.Repositories;
 using Microsoft.Data.Sqlite;
 using Scalar.AspNetCore;
 using System.Data;
+using Web.Api.ExceptionHandlers;
 using Web.Api.Filters;
 using Web.Api.Middleware;
 
@@ -38,9 +38,9 @@ builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
 // Services
-builder.Services.AddScoped<IAuditLogService, AuditLogService>();
-builder.Services.AddScoped<IInventoryService, InventoryService>();
-builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<AuditLogService>();
+builder.Services.AddScoped<InventoryService>();
+builder.Services.AddScoped<OrderService>();
 
 // 4. DI 登録 (Framework / Web)
 builder.Services.AddControllers(options =>
@@ -51,6 +51,12 @@ builder.Services.AddControllers(options =>
 builder.Services.AddOpenApi();
 // FluentValidation（Validator のみ登録）
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
+// 特定の例外を先に登録
+builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
+// グローバルハンドラーを最後に登録
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 // アプリケーションのビルド
 var app = builder.Build();
@@ -83,7 +89,7 @@ if (app.Environment.IsDevelopment())
 // ミドルウェア（例外ハンドリング用）
 app.UseMiddleware<ProblemDetailsMiddleware>();
 app.UseHttpsRedirection();
-app.UseAuthorization();
+//app.UseAuthorization();
 app.MapControllers();
 
 app.Run();

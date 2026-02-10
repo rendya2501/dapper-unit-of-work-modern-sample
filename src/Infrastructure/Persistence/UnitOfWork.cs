@@ -75,8 +75,8 @@ public class UnitOfWork(
 
 
     /// <inheritdoc />
-    public async Task<OperationResult<T>> ExecuteInTransactionAsync<T>(
-        Func<Task<OperationResult<T>>> operation,
+    public async Task<Result<T>> ExecuteInTransactionAsync<T>(
+        Func<Task<Result<T>>> operation,
         CancellationToken cancellationToken = default)
     {
         // 引数チェック
@@ -123,7 +123,7 @@ public class UnitOfWork(
                 await RollbackTransactionAsync(sessionManager.Transaction, cancellationToken);
                 logger.LogWarning(
                     "Transaction rolled back due to business failure: {ErrorMessage}",
-                    result.ErrorMessage);
+                    result.Error);
             }
 
             return result;
@@ -163,8 +163,8 @@ public class UnitOfWork(
 
 
     /// <inheritdoc />
-    public async Task<OperationResult> ExecuteInTransactionAsync(
-        Func<Task<OperationResult>> operation,
+    public async Task<Result> ExecuteInTransactionAsync(
+        Func<Task<Result>> operation,
         CancellationToken cancellationToken = default)
     {
         // 引数チェック
@@ -200,7 +200,7 @@ public class UnitOfWork(
                 await RollbackTransactionAsync(sessionManager.Transaction, cancellationToken);
                 logger.LogWarning(
                     "Transaction rolled back due to business failure: {ErrorMessage}",
-                    result.ErrorMessage);
+                    result.Error);
             }
 
             return result;

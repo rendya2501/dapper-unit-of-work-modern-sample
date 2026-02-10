@@ -1,5 +1,5 @@
-﻿using Application.Services.Abstractions;
-using Domain.Entities;
+﻿using Application.Services;
+using Domain.Inventory;
 using Microsoft.AspNetCore.Mvc;
 using Web.Api.Contracts.Requests;
 using Web.Api.Contracts.Responses;
@@ -12,7 +12,7 @@ namespace Web.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class InventoryController(IInventoryService inventoryService) : ControllerBase
+public class InventoryController(InventoryService inventoryService) : ControllerBase
 {
     /// <summary>
     /// すべての在庫を取得します
@@ -22,19 +22,19 @@ public class InventoryController(IInventoryService inventoryService) : Controlle
     public async Task<IActionResult> GetAllAsync(CancellationToken cancellationToken)
     {
         var inventories = await inventoryService.GetAllAsync(cancellationToken);
-        return inventories.ToActionResult(this, Ok);
+        return inventories.ToOk();
     }
 
     /// <summary>
     /// 商品IDを指定して在庫を取得します
     /// </summary>
-    [HttpGet("{productId}", Name = "GetByProductId")]
+    [HttpGet("{productId}", Name = nameof(GetByProductIdAsync))]
     [ProducesResponseType(typeof(Inventory), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetByProductIdAsync(int productId, CancellationToken cancellationToken)
     {
         var inventory = await inventoryService.GetByProductIdAsync(productId, cancellationToken);
-        return inventory.ToActionResult(this, Ok);
+        return inventory.ToOk();
     }
 
     /// <summary>
@@ -49,10 +49,10 @@ public class InventoryController(IInventoryService inventoryService) : Controlle
         var result = await inventoryService.CreateAsync(
             request.ProductName, request.Stock, request.UnitPrice, cancellationToken);
 
-        return result.ToActionResult(this, productId => CreatedAtAction(
-            nameof(GetByProductIdAsync),
-            new { productId },
-            new CreateInventoryResponse(productId)));
+        return result.ToCreatedAtRoute(
+            routeName: nameof(GetByProductIdAsync),
+            routeValuesSelector: productId => new { productId },
+            responseSelector: productId => new CreateInventoryResponse(productId));
     }
 
     /// <summary>
@@ -68,7 +68,7 @@ public class InventoryController(IInventoryService inventoryService) : Controlle
         var result = await inventoryService.UpdateAsync(
             productId, request.ProductName, request.Stock, request.UnitPrice, cancellationToken);
 
-        return result.ToActionResult(this, NoContent);
+        return result.ToNoContent();
     }
 
     /// <summary>
@@ -81,6 +81,6 @@ public class InventoryController(IInventoryService inventoryService) : Controlle
     {
         var result = await inventoryService.DeleteAsync(productId, cancellationToken);
 
-        return result.ToActionResult(this, NoContent);
+        return result.ToNoContent();
     }
 }

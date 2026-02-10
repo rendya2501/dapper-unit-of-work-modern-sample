@@ -1,4 +1,4 @@
-﻿using Domain.Entities;
+﻿using Domain.Inventory;
 
 namespace Application.Repositories;
 

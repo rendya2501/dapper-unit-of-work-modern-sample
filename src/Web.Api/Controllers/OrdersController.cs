@@ -1,10 +1,11 @@
 ﻿using Application.Models;
-using Application.Services.Abstractions;
-using Domain.Entities;
+using Application.Services;
+using Domain.Orders;
 using Microsoft.AspNetCore.Mvc;
 using Web.Api.Contracts.Requests;
 using Web.Api.Contracts.Responses;
 using Web.Api.Extensions;
+using Web.Api.Infrastructure;
 
 namespace Web.Api.Controllers;
 
@@ -14,7 +15,7 @@ namespace Web.Api.Controllers;
 /// <param name="orderService">注文サービス</param>
 [ApiController]
 [Route("api/[controller]")]
-public class OrdersController(IOrderService orderService) : ControllerBase
+public class OrdersController(OrderService orderService) : ControllerBase
 {
     /// <summary>
     /// 注文を作成します
@@ -30,19 +31,21 @@ public class OrdersController(IOrderService orderService) : ControllerBase
     public async Task<IActionResult> CreateOrderAsync([FromBody] CreateOrderRequest request,
         CancellationToken cancellationToken)
     {
-        // バリデーションは ValidationFilter が自動実行
-        // エラーは ProblemDetailsMiddleware が自動変換
-
         var items = request.Items
             .Select(i => new OrderItem(i.ProductId, i.Quantity))
             .ToList();
 
         var result = await orderService.CreateOrderAsync(request.CustomerId, items, cancellationToken);
 
-        return result.ToActionResult(this, orderId => CreatedAtAction(
-            nameof(GetOrderByIdAsync),
-            new { id = orderId },
-            new CreateOrderResponse(orderId)));
+        //return result.ToCreatedAtRoute(
+        //    nameof(GetOrderByIdAsync),
+        //    routeValuesSelector: orderId => new { id = orderId },
+        //    responseSelector: orderId => new CreateOrderResponse(orderId));
+        return result.ToResult(
+            orderId => CreatedAtRoute(
+                nameof(GetOrderByIdAsync),
+                new { id = orderId },
+                new CreateOrderResponse(orderId)));
     }
 
     /// <summary>
@@ -53,18 +56,18 @@ public class OrdersController(IOrderService orderService) : ControllerBase
     public async Task<IActionResult> GetAllOrdersAsync(CancellationToken cancellationToken)
     {
         var result = await orderService.GetAllOrdersAsync(cancellationToken);
-        return result.ToActionResult(this, Ok);
+        return result.ToOk();
     }
 
     /// <summary>
     /// IDを指定して注文を取得します
     /// </summary>
-    [HttpGet("{id}")]
+    [HttpGet("{id}", Name = nameof(GetOrderByIdAsync))]
     [ProducesResponseType(typeof(Order), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetOrderByIdAsync(int id, CancellationToken cancellationToken)
     {
         var result = await orderService.GetOrderByIdAsync(id, cancellationToken);
-        return result.ToActionResult(this, Ok);
+        return result.ToOk();
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace Domain.Entities;
+﻿namespace Domain.Inventory;
 
 /// <summary>
 /// 在庫エンティティ

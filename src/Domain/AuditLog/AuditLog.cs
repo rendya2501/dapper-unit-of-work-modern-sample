@@ -1,4 +1,4 @@
-﻿namespace Domain.Entities;
+﻿namespace Domain.AuditLog;
 
 /// <summary>
 /// 監査ログエンティティ

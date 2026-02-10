@@ -12,14 +12,14 @@ public interface IUnitOfWork : IAsyncDisposable, IDisposable
     /// トランザクション内で操作を実行
     /// 成功時は自動Commit、失敗時は自動Rollback
     /// </summary>
-    Task<OperationResult<T>> ExecuteInTransactionAsync<T>(
-        Func<Task<OperationResult<T>>> operation,
+    Task<Result<T>> ExecuteInTransactionAsync<T>(
+        Func<Task<Result<T>>> operation,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// トランザクション内で操作を実行（戻り値なし版）
     /// </summary>
-    Task<OperationResult> ExecuteInTransactionAsync(
-        Func<Task<OperationResult>> operation,
+    Task<Result> ExecuteInTransactionAsync(
+        Func<Task<Result>> operation,
         CancellationToken cancellationToken = default);
 }

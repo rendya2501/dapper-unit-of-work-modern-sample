@@ -1,8 +1,8 @@
 ﻿using Application.Common;
 using Application.Repositories;
-using Application.Services.Abstractions;
+using Domain.AuditLog;
 using Domain.Common.Results;
-using Domain.Entities;
+using Domain.Inventory;
 
 namespace Application.Services;
 
@@ -15,31 +15,31 @@ namespace Application.Services;
 public class InventoryService(
     IUnitOfWork uow,
     IInventoryRepository inventory,
-    IAuditLogRepository auditLog) : IInventoryService
+    IAuditLogRepository auditLog)
 {
     /// <inheritdoc />
-    public async Task<OperationResult<IEnumerable<Inventory>>> GetAllAsync(
+    public async Task<Result<IEnumerable<Inventory>>> GetAllAsync(
         CancellationToken cancellationToken = default)
     {
         var inventories = await inventory.GetAllAsync(cancellationToken);
-        return Outcome.Success(inventories);
+        return Result.Success(inventories);
     }
 
     /// <inheritdoc />
-    public async Task<OperationResult<Inventory>> GetByProductIdAsync(
+    public async Task<Result<Inventory>> GetByProductIdAsync(
         int productId,
         CancellationToken cancellationToken = default)
     {
         var inventoryEntity = await inventory.GetByProductIdAsync(productId, cancellationToken);
         if (inventoryEntity is null)
         {
-            return Outcome.NotFound($"Inventory not found for productId: {productId}");
+            return Result.Failure<Inventory>(InventoryErrors.NotFoundByProductId(productId));
         }
-        return Outcome.Success(inventoryEntity);
+        return Result.Success(inventoryEntity);
     }
 
     /// <inheritdoc />
-    public async Task<OperationResult<int>> CreateAsync(
+    public async Task<Result<int>> CreateAsync(
         string productName,
         int stock,
         decimal unitPrice,
@@ -61,12 +61,12 @@ public class InventoryService(
                 CreatedAt = DateTime.UtcNow
             }, cancellationToken);
 
-            return Outcome.Success(productId);
+            return Result.Success(productId);
         }, cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<OperationResult> UpdateAsync(
+    public async Task<Result> UpdateAsync(
         int productId,
         string productName,
         int stock,
@@ -78,7 +78,7 @@ public class InventoryService(
             var existing = await inventory.GetByProductIdAsync(productId, cancellationToken);
             if (existing is null)
             {
-                return Outcome.NotFound($"Product not found for productId: {productId}");
+                return Result.Failure(InventoryErrors.NotFoundByProductId(productId));
             }
 
             await inventory.UpdateAsync(productId, productName, stock, unitPrice, cancellationToken);
@@ -90,12 +90,12 @@ public class InventoryService(
                 CreatedAt = DateTime.UtcNow
             }, cancellationToken);
 
-            return Outcome.Success();
+            return Result.Success();
         }, cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<OperationResult> DeleteAsync(
+    public async Task<Result> DeleteAsync(
         int productId,
         CancellationToken cancellationToken = default)
     {
@@ -104,7 +104,7 @@ public class InventoryService(
             var existing = await inventory.GetByProductIdAsync(productId, cancellationToken);
             if (existing is null)
             {
-                return Outcome.NotFound($"Product not found for productId: {productId}");
+                return Result.Failure(InventoryErrors.NotFoundByProductId(productId));
             }
 
             await inventory.DeleteAsync(productId, cancellationToken);
@@ -116,7 +116,7 @@ public class InventoryService(
                 CreatedAt = DateTime.UtcNow
             }, cancellationToken);
 
-            return Outcome.Success();
+            return Result.Success();
         }, cancellationToken);
     }
 }

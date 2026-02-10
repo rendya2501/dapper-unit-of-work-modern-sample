@@ -1,9 +1,10 @@
 ﻿using Application.Common;
 using Application.Models;
 using Application.Repositories;
-using Application.Services.Abstractions;
+using Domain.AuditLog;
 using Domain.Common.Results;
-using Domain.Entities;
+using Domain.Inventory;
+using Domain.Orders;
 
 namespace Application.Services;
 
@@ -24,11 +25,11 @@ public class OrderService(
     IUnitOfWork uow,
     IInventoryRepository inventory,
     IOrderRepository order,
-    IAuditLogRepository auditLog) : IOrderService
+    IAuditLogRepository auditLog)
 {
     /// <inheritdoc />
-    public async Task<OperationResult<int>> CreateOrderAsync(
-        int customerId, 
+    public async Task<Result<int>> CreateOrderAsync(
+        int customerId,
         List<OrderItem> items,
         CancellationToken cancellationToken)
     {
@@ -36,9 +37,10 @@ public class OrderService(
         {
             if (items.Count == 0)
             {
-                return Outcome.BusinessRule(
-                    BusinessErrorCode.InvalidQuantity.ToErrorCode(),
-                    "Order must have at least one item.");
+                //return Result.BusinessRule(
+                //    BusinessErrorCode.InvalidQuantity.ToErrorCode(),
+                //    "Order must have at least one item.");
+                return Result.Failure<int>(OrderErrors.EmptyOrder());
             }
 
             // 1. 注文集約を構築
@@ -54,15 +56,17 @@ public class OrderService(
                 var productEntity = await inventory.GetByProductIdAsync(item.ProductId);
                 if (productEntity is null)
                 {
-                    return Outcome.NotFound($"Product not found for productId: {item.ProductId}");
+                    return Result.Failure<int>(InventoryErrors.NotFoundByProductId(item.ProductId));
                 }
 
                 if (productEntity.Stock < item.Quantity)
                 {
-                    return Outcome.BusinessRule(
-                        BusinessErrorCode.InsufficientStock.ToErrorCode(),
-                        $"Insufficient stock for {productEntity.ProductName}. " +
-                        $"Available: {productEntity.Stock}, Requested: {item.Quantity}");
+                    //return Result.BusinessRule(
+                    //    BusinessErrorCode.InsufficientStock.ToErrorCode(),
+                    //    $"Insufficient stock for {productEntity.ProductName}. " +
+                    //    $"Available: {productEntity.Stock}, Requested: {item.Quantity}");
+                    return Result.Failure<int>(
+                        OrderErrors.InsufficientStock(item.ProductId, productEntity.Stock, item.Quantity));
                 }
 
                 // 在庫減算
@@ -86,27 +90,27 @@ public class OrderService(
                 CreatedAt = DateTime.UtcNow
             });
 
-            return Outcome.Success(orderId);
+            return Result.Success(orderId);
         }, cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<OperationResult<IEnumerable<Order>>> GetAllOrdersAsync(
+    public async Task<Result<IEnumerable<Order>>> GetAllOrdersAsync(
         CancellationToken cancellationToken = default)
     {
         var orders = await order.GetAllAsync(cancellationToken);
-        return Outcome.Success(orders);
+        return Result.Success(orders);
     }
 
     /// <inheritdoc />
-    public async Task<OperationResult<Order>> GetOrderByIdAsync(int id,
+    public async Task<Result<Order>> GetOrderByIdAsync(int id,
         CancellationToken cancellationToken = default)
     {
         var orderEntity = await order.GetByIdAsync(id, cancellationToken);
         if (orderEntity is null)
         {
-            return Outcome.NotFound($"Order not found for id: {id}");
+            return Result.Failure<Order>(OrderErrors.NotFoundByOrderId(id));
         }
-        return Outcome.Success(orderEntity);
+        return Result.Success(orderEntity);
     }
 }
