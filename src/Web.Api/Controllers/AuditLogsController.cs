@@ -1,6 +1,6 @@
 ﻿using Application.Services;
-using Domain.AuditLog;
 using Microsoft.AspNetCore.Mvc;
+using Web.Api.Contracts.AuditLogs.Responses;
 using Web.Api.Extensions;
 
 namespace Web.Api.Controllers;
@@ -18,10 +18,10 @@ public class AuditLogsController(AuditLogService auditLogService) : ControllerBa
     /// <param name="limit">取得件数の上限（デフォルト: 100）</param>
     /// <returns>監査ログのリスト（新しい順）</returns>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<AuditLog>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<AuditLogResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllAsync([FromQuery] int limit = 100, CancellationToken cancellationToken = default)
     {
         var result = await auditLogService.GetAllAsync(limit, cancellationToken);
-        return result.ToOk();
+        return result.ToOk(logs => logs.Select(l => l.ToResponse()));
     }
 }

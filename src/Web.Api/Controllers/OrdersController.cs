@@ -1,9 +1,8 @@
 ﻿using Application.Models;
 using Application.Services;
-using Domain.Orders;
 using Microsoft.AspNetCore.Mvc;
-using Web.Api.Contracts.Requests;
-using Web.Api.Contracts.Responses;
+using Web.Api.Contracts.Orders.Requests;
+using Web.Api.Contracts.Orders.Responses;
 using Web.Api.Extensions;
 
 namespace Web.Api.Controllers;
@@ -47,22 +46,22 @@ public class OrdersController(OrderService orderService) : ControllerBase
     /// すべての注文を取得します
     /// </summary>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<Order>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<OrderResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllOrdersAsync(CancellationToken cancellationToken)
     {
         var result = await orderService.GetAllOrdersAsync(cancellationToken);
-        return result.ToOk();
+        return result.ToOk(orders => orders.Select(o => o.ToResponse()));
     }
 
     /// <summary>
     /// IDを指定して注文を取得します
     /// </summary>
     [HttpGet("{id}", Name = nameof(GetOrderByIdAsync))]
-    [ProducesResponseType(typeof(Order), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(OrderResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetOrderByIdAsync(int id, CancellationToken cancellationToken)
     {
         var result = await orderService.GetOrderByIdAsync(id, cancellationToken);
-        return result.ToOk();
+        return result.ToOk(order => order.ToResponse());
     }
 }

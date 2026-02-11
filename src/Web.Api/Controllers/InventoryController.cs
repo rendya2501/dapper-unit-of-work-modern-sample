@@ -1,8 +1,7 @@
 ﻿using Application.Services;
-using Domain.Inventory;
 using Microsoft.AspNetCore.Mvc;
-using Web.Api.Contracts.Requests;
-using Web.Api.Contracts.Responses;
+using Web.Api.Contracts.Inventory.Requests;
+using Web.Api.Contracts.Inventory.Responses;
 using Web.Api.Extensions;
 
 namespace Web.Api.Controllers;
@@ -18,23 +17,23 @@ public class InventoryController(InventoryService inventoryService) : Controller
     /// すべての在庫を取得します
     /// </summary>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<Inventory>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<InventoryResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllAsync(CancellationToken cancellationToken)
     {
-        var inventories = await inventoryService.GetAllAsync(cancellationToken);
-        return inventories.ToOk();
+        var result = await inventoryService.GetAllAsync(cancellationToken);
+        return result.ToOk(inventories => inventories.Select(i => i.ToResponse()));
     }
 
     /// <summary>
     /// 商品IDを指定して在庫を取得します
     /// </summary>
     [HttpGet("{productId}", Name = nameof(GetByProductIdAsync))]
-    [ProducesResponseType(typeof(Inventory), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(InventoryResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetByProductIdAsync(int productId, CancellationToken cancellationToken)
     {
-        var inventory = await inventoryService.GetByProductIdAsync(productId, cancellationToken);
-        return inventory.ToOk();
+        var result = await inventoryService.GetByProductIdAsync(productId, cancellationToken);
+        return result.ToOk(inventory => inventory.ToResponse());
     }
 
     /// <summary>
