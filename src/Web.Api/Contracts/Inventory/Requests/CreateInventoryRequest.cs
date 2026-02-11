@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace Web.Api.Contracts.Requests;
+namespace Web.Api.Contracts.Inventory.Requests;
 
 /// <summary>
 /// 在庫作成リクエスト

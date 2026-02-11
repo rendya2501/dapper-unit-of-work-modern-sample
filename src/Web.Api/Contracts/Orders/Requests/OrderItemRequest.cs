@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace Web.Api.Contracts.Requests;
+namespace Web.Api.Contracts.Orders.Requests;
 
 /// <summary>
 /// 注文アイテムリクエスト

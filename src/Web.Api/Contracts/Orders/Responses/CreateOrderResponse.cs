@@ -1,4 +1,4 @@
-﻿namespace Web.Api.Contracts.Responses;
+﻿namespace Web.Api.Contracts.Orders.Responses;
 
 /// <summary>
 /// 注文作成レスポンス
