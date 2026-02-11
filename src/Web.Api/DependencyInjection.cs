@@ -16,11 +16,15 @@ public static class DependencyInjection
     /// <returns>IServiceCollection</returns>
     public static IServiceCollection AddPresentation(this IServiceCollection services)
     {
-        // Controllers + ValidationFilter
+        // ===================================================================
+        // Controllers
+        // ===================================================================
         services.AddControllers();
 
 
+        // ===================================================================
         // FluentValidation
+        // ===================================================================
         services.AddValidatorsFromAssemblyContaining<Program>();
         services.AddFluentValidationAutoValidation();
 
