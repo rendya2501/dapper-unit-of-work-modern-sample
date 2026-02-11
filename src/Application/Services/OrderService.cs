@@ -27,7 +27,13 @@ public class OrderService(
     IOrderRepository order,
     IAuditLogRepository auditLog)
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 注文を作成します
+    /// </summary>
+    /// <param name="customerId">顧客ID</param>
+    /// <param name="items">注文する商品と数量のリスト</param>
+    /// <param name="cancellationToken">キャンセルトークン</param>
+    /// <returns>作成された注文ID</returns>
     public async Task<Result<int>> CreateOrderAsync(
         int customerId,
         List<OrderItem> items,
@@ -89,7 +95,11 @@ public class OrderService(
         }, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// すべての注文を取得します
+    /// </summary>
+    /// <param name="cancellationToken">キャンセルトークン</param>
+    /// <returns>注文のリスト</returns>
     public async Task<Result<IEnumerable<Order>>> GetAllOrdersAsync(
         CancellationToken cancellationToken = default)
     {
@@ -97,7 +107,12 @@ public class OrderService(
         return Result.Success(orders);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// IDを指定して注文を取得します
+    /// </summary>
+    /// <param name="id">注文ID</param>
+    /// <param name="cancellationToken">キャンセルトークン</param>
+    /// <returns>注文</returns>
     public async Task<Result<Order>> GetOrderByIdAsync(int id,
         CancellationToken cancellationToken = default)
     {
