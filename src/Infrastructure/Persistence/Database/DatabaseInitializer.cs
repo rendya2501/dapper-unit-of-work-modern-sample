@@ -24,7 +24,6 @@ public static class DatabaseInitializer
         Console.WriteLine("Database initialized successfully.");
     }
 
-
     /// <summary>
     /// テーブルを作成します
     /// </summary>

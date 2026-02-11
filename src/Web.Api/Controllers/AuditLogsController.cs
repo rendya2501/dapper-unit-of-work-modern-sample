@@ -22,6 +22,7 @@ public class AuditLogsController(AuditLogService auditLogService) : ControllerBa
     public async Task<IActionResult> GetAllAsync([FromQuery] int limit = 100, CancellationToken cancellationToken = default)
     {
         var result = await auditLogService.GetAllAsync(limit, cancellationToken);
+
         return result.ToOk(logs => logs.Select(l => l.ToResponse()));
     }
 }

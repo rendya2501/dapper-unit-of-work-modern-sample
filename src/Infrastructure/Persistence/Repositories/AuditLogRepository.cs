@@ -12,7 +12,9 @@ public class AuditLogRepository(IDbSession session)
     : IAuditLogRepository
 {
     /// <inheritdoc />
-    public async Task CreateAsync(AuditLog log, CancellationToken cancellationToken = default)
+    public async Task CreateAsync(
+        AuditLog log, 
+        CancellationToken cancellationToken = default)
     {
         const string sql = """
             INSERT INTO AuditLog (Action, Details, CreatedAt)
@@ -29,7 +31,9 @@ public class AuditLogRepository(IDbSession session)
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<AuditLog>> GetAllAsync(int limit = 100, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<AuditLog>> GetAllAsync(
+        int limit = 100, 
+        CancellationToken cancellationToken = default)
     {
         const string sql = """
             SELECT * FROM AuditLog 

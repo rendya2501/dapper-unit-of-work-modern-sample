@@ -21,6 +21,7 @@ public class InventoryController(InventoryService inventoryService) : Controller
     public async Task<IActionResult> GetAllAsync(CancellationToken cancellationToken)
     {
         var result = await inventoryService.GetAllAsync(cancellationToken);
+
         return result.ToOk(inventories => inventories.Select(i => i.ToResponse()));
     }
 
@@ -33,6 +34,7 @@ public class InventoryController(InventoryService inventoryService) : Controller
     public async Task<IActionResult> GetByProductIdAsync(int productId, CancellationToken cancellationToken)
     {
         var result = await inventoryService.GetByProductIdAsync(productId, cancellationToken);
+
         return result.ToOk(inventory => inventory.ToResponse());
     }
 

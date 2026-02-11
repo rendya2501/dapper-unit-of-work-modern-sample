@@ -50,6 +50,7 @@ public class OrdersController(OrderService orderService) : ControllerBase
     public async Task<IActionResult> GetAllOrdersAsync(CancellationToken cancellationToken)
     {
         var result = await orderService.GetAllOrdersAsync(cancellationToken);
+
         return result.ToOk(orders => orders.Select(o => o.ToResponse()));
     }
 
@@ -62,6 +63,7 @@ public class OrdersController(OrderService orderService) : ControllerBase
     public async Task<IActionResult> GetOrderByIdAsync(int id, CancellationToken cancellationToken)
     {
         var result = await orderService.GetOrderByIdAsync(id, cancellationToken);
+
         return result.ToOk(order => order.ToResponse());
     }
 }
