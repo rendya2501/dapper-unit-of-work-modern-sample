@@ -21,43 +21,6 @@ public static class ResultHttpExtensions
             CustomResults.Problem);
 
     /// <summary>
-    /// 201 Created At Action
-    /// </summary>
-    /// <param name="result"></param>
-    /// <param name="actionName">アクション名（例: nameof(GetByIdAsync)）</param>
-    /// <param name="controllerName">コントローラー名（例: "Orders"）。同一コントローラーなら null 可</param>
-    /// <param name="routeValuesSelector">ルート値セレクター（例: id => new { id }）</param>
-    /// <param name="responseSelector">レスポンスボディセレクター（例: id => new CreateResponse(id)）</param>
-    public static IActionResult ToCreatedAtAction<T>(
-        this Result<T> result,
-        string actionName,
-        string? controllerName,
-        Func<T, object> routeValuesSelector,
-        Func<T, object>? responseSelector = null) =>
-            result.Match(
-                value => new CreatedAtActionResult(
-                    actionName,
-                    controllerName,
-                    routeValues: routeValuesSelector(value),
-                    value: responseSelector is not null ? responseSelector(value) : value),
-                CustomResults.Problem);
-
-    /// <summary>
-    /// 201 Created At Route
-    /// </summary>
-    public static IActionResult ToCreatedAtRoute<T>(
-        this Result<T> result,
-        string routeName,
-        Func<T, object> routeValuesSelector,
-        Func<T, object>? responseSelector = null) =>
-            result.Match(
-                value => new CreatedAtRouteResult(
-                    routeName,
-                    routeValuesSelector(value),
-                    responseSelector is not null ? responseSelector(value) : value),
-                CustomResults.Problem);
-
-    /// <summary>
     /// 204 No Content（値なし Result）
     /// </summary>
     public static IActionResult ToNoContent(this Result result) =>

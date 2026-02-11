@@ -49,10 +49,11 @@ public class InventoryController(InventoryService inventoryService) : Controller
         var result = await inventoryService.CreateAsync(
             request.ProductName, request.Stock, request.UnitPrice, cancellationToken);
 
-        return result.ToCreatedAtRoute(
-            routeName: nameof(GetByProductIdAsync),
-            routeValuesSelector: productId => new { productId },
-            responseSelector: productId => new CreateInventoryResponse(productId));
+        return result.ToResult(
+            productId => CreatedAtRoute(
+                nameof(GetByProductIdAsync),
+                new { productId },
+                new CreateInventoryResponse(productId)));
     }
 
     /// <summary>
