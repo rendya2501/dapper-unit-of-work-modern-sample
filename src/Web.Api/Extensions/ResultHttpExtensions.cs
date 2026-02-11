@@ -14,6 +14,7 @@ namespace Web.Api.Extensions;
 /// <para>
 /// <strong>使い分けの指針:</strong><br/>
 /// - レスポンスパターンが1通りに決まる場合 → <see cref="ToOk{T}"/>、<see cref="ToNoContent"/> を使用<br/>
+/// - ドメインモデルをレスポンスDTOに変換する場合 → <see cref="ToOk{T, TResponse}"/> を使用<br/>
 /// - 201 Created や 202 Accepted など、呼び出し側でレスポンスを組み立てる場合 → <see cref="ToResult{T}"/>、<see cref="ToResult"/> を使用
 /// </para>
 /// </remarks>
@@ -30,7 +31,20 @@ public static class ResultHttpExtensions
             value => new OkObjectResult(value),
             failure => ErrorToProblemMapper.ToActionResult(failure.Error!));
 
-
+    /// <summary>
+    /// 成功時に <paramref name="mapper"/> で変換した値を 200 OK で返し、失敗時に ProblemDetails を返します
+    /// </summary>
+    /// <typeparam name="T">成功時の値の型（ドメインモデル）</typeparam>
+    /// <typeparam name="TResponse">レスポンスDTOの型</typeparam>
+    /// <param name="result">変換対象の Result</param>
+    /// <param name="mapper">ドメインモデルをレスポンスDTOに変換する関数</param>
+    /// <returns>200 OK または ProblemDetails を含む <see cref="IActionResult"/></returns>
+    /// <example>
+    /// <code>
+    /// return result.ToOk(order => order.ToResponse());
+    /// return result.ToOk(orders => orders.Select(o => o.ToResponse()));
+    /// </code>
+    /// </example>
     public static IActionResult ToOk<T, TResponse>(this Result<T> result, Func<T, TResponse> mapper) =>
         result.Match(
             value => new OkObjectResult(mapper(value)),
