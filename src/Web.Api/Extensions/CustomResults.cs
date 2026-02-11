@@ -1,7 +1,7 @@
 ﻿using Domain.Common.Results;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Web.Api.Infrastructure;
+namespace Web.Api.Extensions;
 
 /// <summary>
 /// Result を RFC 7807 準拠の ProblemDetails に変換するヘルパークラス

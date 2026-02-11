@@ -1,6 +1,5 @@
 ﻿using Domain.Common.Results;
 using Microsoft.AspNetCore.Mvc;
-using Web.Api.Infrastructure;
 
 namespace Web.Api.Extensions;
 
