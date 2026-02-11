@@ -1,10 +1,9 @@
+using Application;
 using Infrastructure;
 using Infrastructure.Persistence.Database;
-using Application;
 using Scalar.AspNetCore;
 using System.Data;
 using Web.Api;
-using Web.Api.Middleware;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,7 +16,6 @@ builder.Services
     .AddApplication()
     .AddPresentation();
 
-// アプリケーションのビルド
 var app = builder.Build();
 
 // DB初期化
@@ -44,8 +42,7 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
-// ミドルウェア（例外ハンドリング用）
-app.UseMiddleware<ProblemDetailsMiddleware>();
+app.UseExceptionHandler();
 app.UseHttpsRedirection();
 app.MapControllers();
 

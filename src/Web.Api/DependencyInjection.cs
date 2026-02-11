@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
+using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using Web.Api.ExceptionHandlers;
-using Web.Api.Filters;
 
 namespace Web.Api;
 
@@ -17,10 +17,13 @@ public static class DependencyInjection
     public static IServiceCollection AddPresentation(this IServiceCollection services)
     {
         // Controllers + ValidationFilter
-        services.AddControllers(options =>
-        {
-            options.Filters.Add<ValidationFilter>();
-        });
+        services.AddControllers();
+
+
+        // FluentValidation
+        services.AddValidatorsFromAssemblyContaining<Program>();
+        services.AddFluentValidationAutoValidation();
+
 
         // ===================================================================
         // OpenAPI
@@ -28,9 +31,6 @@ public static class DependencyInjection
         services.AddEndpointsApiExplorer(); // APIエンドポイントの情報を探索可能にする
         services.AddOpenApi();
 
-
-        // FluentValidation
-        services.AddValidatorsFromAssemblyContaining<Program>();
 
         // ===================================================================
         // 例外ハンドラー（順序が重要！）
