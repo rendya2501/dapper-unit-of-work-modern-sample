@@ -1,4 +1,4 @@
-﻿namespace Web.Api.Contracts.Inventory.Responses;
+﻿namespace Web.Api.Contracts.Inventories.Responses;
 
 /// <summary>
 /// 在庫作成レスポンス

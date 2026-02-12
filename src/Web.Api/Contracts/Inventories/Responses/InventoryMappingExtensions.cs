@@ -1,7 +1,9 @@
-﻿namespace Web.Api.Contracts.Inventory.Responses;
+﻿using Domain.Inventory;
+
+namespace Web.Api.Contracts.Inventories.Responses;
 
 /// <summary>
-/// <see cref="Inventory"/> ドメインモデルを <see cref="InventoryResponse"/> に変換する拡張メソッド
+/// <see cref="InventoryEntity"/> ドメインモデルを <see cref="InventoryResponse"/> に変換する拡張メソッド
 /// </summary>
 public static class InventoryMappingExtensions
 {
@@ -10,7 +12,7 @@ public static class InventoryMappingExtensions
     /// </summary>
     /// <param name="inventory">変換対象の在庫エンティティ</param>
     /// <returns>在庫情報のレスポンスDTO</returns>
-    public static InventoryResponse ToResponse(this Domain.Inventory.Inventory inventory) =>
+    public static InventoryResponse ToResponse(this Inventory inventory) =>
         new(
             inventory.ProductId,
             inventory.ProductName,

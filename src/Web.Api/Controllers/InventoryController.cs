@@ -1,7 +1,7 @@
 ﻿using Application.Services;
 using Microsoft.AspNetCore.Mvc;
-using Web.Api.Contracts.Inventory.Requests;
-using Web.Api.Contracts.Inventory.Responses;
+using Web.Api.Contracts.Inventories.Requests;
+using Web.Api.Contracts.Inventories.Responses;
 using Web.Api.Extensions;
 
 namespace Web.Api.Controllers;
