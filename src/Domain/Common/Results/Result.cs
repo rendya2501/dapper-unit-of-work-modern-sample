@@ -11,9 +11,14 @@ public class Result
     {
         // 不正な組み合わせをチェック
         if (isSuccess && error != null)
+        {
             throw new ArgumentException("Success result cannot have an error", nameof(error));
+        }
+
         if (!isSuccess && error == null)
+        {
             throw new ArgumentException("Failure result must have an error", nameof(error));
+        }
 
         IsSuccess = isSuccess;
         Error = error;
