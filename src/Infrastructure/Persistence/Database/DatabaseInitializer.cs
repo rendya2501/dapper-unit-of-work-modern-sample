@@ -16,7 +16,9 @@ public static class DatabaseInitializer
     public static void Initialize(IDbConnection connection)
     {
         if (connection.State != ConnectionState.Open)
+        {
             connection.Open();
+        }
 
         CreateTables(connection);
         SeedData(connection);
