@@ -93,15 +93,13 @@ public class UnitOfWork(
         {
             // 1. 接続開始
             await EnsureConnectionOpenAsync(cancellationToken);
+
             // 2. トランザクション開始
             sessionManager.Transaction = await BeginTransactionAsync(cancellationToken);
 
-            if (logger.IsEnabled(LogLevel.Debug))
-            {
-                logger.LogDebug(
-                    "Transaction started for operation {OperationType}",
-                    typeof(T).Name);
-            }
+            logger.LogDebug(
+                "Transaction started for operation {OperationType}",
+                typeof(T).Name);
 
             // 3. 操作を実行
             var result = await operation();
@@ -110,17 +108,16 @@ public class UnitOfWork(
             {
                 // 4. コミット
                 await CommitTransactionAsync(sessionManager.Transaction, cancellationToken);
-                if (logger.IsEnabled(LogLevel.Information))
-                {
-                    logger.LogInformation(
-                        "Transaction committed successfully for {OperationType}",
-                        typeof(T).Name);
-                }
+
+                logger.LogInformation(
+                    "Transaction committed successfully for {OperationType}",
+                    typeof(T).Name);
             }
             else
             {
                 // 4. ロールバック
                 await RollbackTransactionAsync(sessionManager.Transaction, cancellationToken);
+
                 logger.LogWarning(
                     "Transaction rolled back due to business failure: {ErrorMessage}",
                     result.Error);
@@ -180,6 +177,7 @@ public class UnitOfWork(
         {
             // 1. 接続開始
             await EnsureConnectionOpenAsync(cancellationToken);
+
             // 2. トランザクション開始
             sessionManager.Transaction = await BeginTransactionAsync(cancellationToken);
 
@@ -375,7 +373,8 @@ public class UnitOfWork(
     /// <summary>
     /// 2重スコープ検出をチェックします。
     /// </summary>
-    private void CheckNestedTransaction(bool isInTransaction){
+    private void CheckNestedTransaction(bool isInTransaction)
+    {
         if (isInTransaction)
         {
             logger.LogError(NestedTransactionErrorMessage);
@@ -429,7 +428,10 @@ public class UnitOfWork(
     /// </remarks>
     protected virtual void Dispose(bool disposing)
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
 
         if (disposing)
         {
@@ -438,7 +440,7 @@ public class UnitOfWork(
             if (sessionManager.Transaction != null)
             {
                 logger.LogWarning(DisposeWithActiveTransactionWarningMessage);
-            
+
                 try
                 {
                     sessionManager.Transaction.Rollback();
@@ -509,7 +511,9 @@ public class UnitOfWork(
     protected virtual async ValueTask DisposeAsyncCore()
     {
         if (_disposed)
+        {
             return;
+        }
 
         // 1. トランザクションをロールバック＆破棄
         // 注: 通常ここに到達することは設計違反（最後の砦）
