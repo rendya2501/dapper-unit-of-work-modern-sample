@@ -1,8 +1,8 @@
 ﻿using Application.Common;
 using Application.Repositories;
-using Domain.Common.Results;
 using Domain.Inventory;
-using Shared.Models;
+using SharedKernel.Models;
+using SharedKernel.Primitives;
 
 namespace Application.Services;
 

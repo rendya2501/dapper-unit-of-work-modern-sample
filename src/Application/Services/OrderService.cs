@@ -1,10 +1,10 @@
 ﻿using Application.Common;
 using Application.DTOs;
 using Application.Repositories;
-using Domain.Common.Results;
 using Domain.Inventory;
 using Domain.Orders;
-using Shared.Models;
+using SharedKernel.Models;
+using SharedKernel.Primitives;
 
 namespace Application.Services;
 

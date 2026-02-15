@@ -1,7 +1,7 @@
 ﻿using Application.Common;
 using Application.Repositories;
 using Dapper;
-using Shared.Models;
+using SharedKernel.Models;
 
 namespace Infrastructure.Persistence.Repositories;
 

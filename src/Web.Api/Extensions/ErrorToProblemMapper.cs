@@ -1,5 +1,5 @@
-﻿using Domain.Common.Results;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using SharedKernel.Primitives;
 
 namespace Web.Api.Extensions;
 

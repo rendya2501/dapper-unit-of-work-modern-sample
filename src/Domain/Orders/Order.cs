@@ -1,5 +1,5 @@
-﻿using Domain.Common.Results;
-using Domain.Inventory;
+﻿using Domain.Inventory;
+using SharedKernel.Primitives;
 
 namespace Domain.Orders;
 

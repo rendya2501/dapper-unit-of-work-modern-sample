@@ -1,4 +1,4 @@
-﻿namespace Domain.Common.Results;
+﻿namespace SharedKernel.Primitives;
 
 /// <summary>
 /// エラー情報を表現する不変レコード

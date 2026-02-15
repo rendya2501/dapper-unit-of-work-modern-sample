@@ -1,4 +1,4 @@
-﻿namespace Domain.Common.Results;
+﻿namespace SharedKernel.Primitives;
 
 /// <summary>
 /// エラーの分類（HTTP ステータスコードへのマッピングに使用）

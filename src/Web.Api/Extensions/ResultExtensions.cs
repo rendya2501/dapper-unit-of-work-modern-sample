@@ -1,4 +1,4 @@
-﻿using Domain.Common.Results;
+﻿using SharedKernel.Primitives;
 
 namespace Web.Api.Extensions;
 

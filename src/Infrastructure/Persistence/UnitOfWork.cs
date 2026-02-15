@@ -1,6 +1,6 @@
 ﻿using Application.Common;
-using Domain.Common.Results;
 using Microsoft.Extensions.Logging;
+using SharedKernel.Primitives;
 using System.Data;
 using System.Data.Common;
 

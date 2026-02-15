@@ -1,4 +1,4 @@
-﻿using Shared.Models;
+﻿using SharedKernel.Models;
 
 namespace Application.Repositories;
 

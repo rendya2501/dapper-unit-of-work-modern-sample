@@ -1,4 +1,4 @@
-﻿namespace Shared.Models;
+﻿namespace SharedKernel.Models;
 
 /// <summary>
 /// 監査ログレコード（Shared Kernel）

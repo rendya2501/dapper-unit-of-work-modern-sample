@@ -1,4 +1,4 @@
-﻿namespace Domain.Common.Results;
+﻿namespace SharedKernel.Primitives;
 
 /// <summary>
 /// 複数のバリデーションエラーを集約するエラーレコード

@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace Domain.Common.Results;
+namespace SharedKernel.Primitives;
 
 /// <summary>
 /// 操作結果を表現する基底型（classベース）

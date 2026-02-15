@@ -1,4 +1,4 @@
-﻿using Shared.Models;
+﻿using SharedKernel.Models;
 
 namespace Web.Api.Contracts.AuditLogs.Responses;
 
