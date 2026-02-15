@@ -2,22 +2,18 @@
 using Application.Repositories;
 using Dapper;
 using Domain.Inventory;
+using Infrastructure.Persistence.Mappers;
+using Infrastructure.Persistence.Models;
 
 namespace Infrastructure.Persistence.Repositories;
 
 /// <summary>
-/// 在庫リポジトリの実装
+/// 在庫リポジトリの実装（Domain/Persistence分離版）
 /// </summary>
 /// <remarks>
-/// <para><strong>設計原則</strong></para>
-/// <list type="bullet">
-/// <item>Repository は session.Connection と session.Transaction を受け取るが、Begin/Commit/Rollback は一切行わない</item>
-/// <item>トランザクション管理は UnitOfWork が責任を持つ</item>
-/// <item>Repository は純粋にデータアクセスのみに専念</item>
-/// </list>
+/// Mapperを使用してドメインモデルと永続化モデルを完全分離。
+/// Dapperは InventoryRecord にマッピングし、返却時にドメインモデルに変換。
 /// </remarks>
-/// <param name="session.Connection">データベース接続</param>
-/// <param name="session.Transaction">トランザクション（UnitOfWork から注入）</param>
 public class InventoryRepository(IDbSession session)
     : IInventoryRepository
 {
@@ -34,7 +30,10 @@ public class InventoryRepository(IDbSession session)
             session.Transaction,
             cancellationToken: cancellationToken);
 
-        return await session.Connection.QueryFirstOrDefaultAsync<Inventory>(command);
+        var record = await session.Connection.QueryFirstOrDefaultAsync<InventoryRecord>(command);
+
+        // Record → Domain 変換（Repository内部）
+        return record == null ? null : InventoryMapper.ToDomain(record);
     }
 
     /// <inheritdoc />
@@ -47,7 +46,10 @@ public class InventoryRepository(IDbSession session)
             session.Transaction,
             cancellationToken: cancellationToken);
 
-        return await session.Connection.QueryAsync<Inventory>(command);
+        var records = await session.Connection.QueryAsync<InventoryRecord>(command);
+
+        // Record → Domain 変換（Repository内部）
+        return records.Select(InventoryMapper.ToDomain);
     }
 
     /// <inheritdoc />
@@ -55,6 +57,9 @@ public class InventoryRepository(IDbSession session)
         Inventory inventory,
         CancellationToken cancellationToken = default)
     {
+        // Domain → Record 変換（Repository内部）
+        var record = InventoryMapper.ToRecord(inventory);
+
         const string sql = """
             INSERT INTO Inventory (ProductName, Stock, UnitPrice)
             VALUES (@ProductName, @Stock, @UnitPrice);
@@ -63,21 +68,26 @@ public class InventoryRepository(IDbSession session)
 
         var command = new CommandDefinition(
             sql,
-            inventory,
+            record,
             session.Transaction,
             cancellationToken: cancellationToken);
 
-        return await session.Connection.ExecuteScalarAsync<int>(command);
+        var productId = await session.Connection.ExecuteScalarAsync<int>(command);
+
+        // Domain側にIDを設定
+        inventory.SetId(new ProductId(productId));
+
+        return productId;
     }
 
     /// <inheritdoc />
     public async Task UpdateAsync(
-        int productId,
-        string productName,
-        int stock,
-        decimal unitPrice,
+        Inventory inventory,
         CancellationToken cancellationToken = default)
     {
+        // Domain → Record 変換（Repository内部）
+        var record = InventoryMapper.ToRecord(inventory);
+
         const string sql = """
             UPDATE Inventory 
             SET ProductName = @ProductName, Stock = @Stock, UnitPrice = @UnitPrice
@@ -86,7 +96,7 @@ public class InventoryRepository(IDbSession session)
 
         var command = new CommandDefinition(
             sql,
-            new { ProductId = productId, ProductName = productName, Stock = stock, UnitPrice = unitPrice },
+            record,
             session.Transaction,
             cancellationToken: cancellationToken);
 

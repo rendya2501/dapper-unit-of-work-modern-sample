@@ -2,6 +2,8 @@
 using Application.Repositories;
 using Dapper;
 using Domain.Orders;
+using Infrastructure.Persistence.Mappers;
+using Infrastructure.Persistence.Models;
 
 namespace Infrastructure.Persistence.Repositories;
 
@@ -26,9 +28,14 @@ public class OrderRepository(IDbSession session)
     : IOrderRepository
 {
     /// <inheritdoc />
-    public async Task<int> CreateAsync(Order order, CancellationToken cancellationToken = default)
+    public async Task<int> CreateAsync(
+        Order order,
+        CancellationToken cancellationToken = default)
     {
-        // 1. 注文（親）を INSERT
+        // 1. Domain → Record 変換（Repository内部）
+        var (orderRecord, detailRecords) = OrderMapper.ToRecords(order);
+
+        // 2. Order INSERT
         const string orderSql = """
             INSERT INTO Orders (CustomerId, CreatedAt)
             VALUES (@CustomerId, @CreatedAt);
@@ -37,14 +44,18 @@ public class OrderRepository(IDbSession session)
 
         var orderCommand = new CommandDefinition(
             orderSql,
-            order,
+            orderRecord,
             session.Transaction,
             cancellationToken: cancellationToken);
 
         var orderId = await session.Connection.ExecuteScalarAsync<int>(orderCommand);
 
-        // 2. 注文明細（子）を一括 INSERT
-        if (order.Details.Count != 0)
+        // 3. Domain側にIDを設定
+        order.SetId(new OrderId(orderId));
+
+
+        // 4. 注文明細（子）を一括 INSERT
+        if (detailRecords.Any())
         {
             const string detailSql = """
                 INSERT INTO OrderDetails (OrderId, ProductId, Quantity, UnitPrice)
@@ -52,14 +63,14 @@ public class OrderRepository(IDbSession session)
                 """;
 
             // 各明細に OrderId を設定
-            foreach (var detail in order.Details)
+            foreach (var detail in detailRecords)
             {
                 detail.OrderId = orderId;
             }
 
             var detailCommand = new CommandDefinition(
                 detailSql,
-                order.Details,
+                detailRecords,
                 session.Transaction,
                 cancellationToken: cancellationToken);
 
@@ -70,7 +81,9 @@ public class OrderRepository(IDbSession session)
     }
 
     /// <inheritdoc />
-    public async Task<Order?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<Order?> GetByIdAsync(
+        int id,
+        CancellationToken cancellationToken = default)
     {
         const string sql = """
             SELECT 
@@ -81,7 +94,7 @@ public class OrderRepository(IDbSession session)
             WHERE o.Id = @Id
             """;
 
-        var orderDict = new Dictionary<int, Order>();
+        var recordDict = new Dictionary<int, (OrderRecord Order, List<OrderDetailRecord> Details)>();
 
         var command = new CommandDefinition(
             sql,
@@ -89,25 +102,36 @@ public class OrderRepository(IDbSession session)
             transaction: session.Transaction,
             cancellationToken: cancellationToken);
 
-        await session.Connection.QueryAsync<Order, OrderDetail, Order>(
+        // Dapperで永続化モデルにマッピング
+        await session.Connection.QueryAsync<OrderRecord, OrderDetailRecord, OrderRecord>(
             command,
-            (order, detail) =>
+            (orderRecord, detailRecord) =>
             {
-                if (!orderDict.TryGetValue(order.Id, out var existing))
+                if (!recordDict.TryGetValue(orderRecord.Id, out var existing))
                 {
-                    existing = order;
-                    orderDict.Add(existing.Id, existing);
+                    existing = (orderRecord, new List<OrderDetailRecord>());
+                    recordDict.Add(orderRecord.Id, existing);
                 }
 
-                if (detail != null)
-                    existing.Details.Add(detail);
+                if (detailRecord != null)
+                {
+                    existing.Details.Add(detailRecord);
+                }
 
-                return existing;
+                return orderRecord;
             },
             splitOn: "Id"
         );
 
-        return orderDict.Values.FirstOrDefault();
+        if (recordDict.Count == 0)
+        {
+            return null;
+        }
+
+        // Record → Domain 変換（Repository内部）
+        var (orderRec, detailRecs) = recordDict.Values.First();
+        return OrderMapper.ToDomain(orderRec, detailRecs);
+
 
         //// 注文を取得
         //const string orderSql = "SELECT * FROM Orders WHERE Id = @Id";
@@ -128,7 +152,8 @@ public class OrderRepository(IDbSession session)
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<Order>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Order>> GetAllAsync(
+        CancellationToken cancellationToken = default)
     {
         const string sql = """
             SELECT 
@@ -139,32 +164,38 @@ public class OrderRepository(IDbSession session)
             ORDER BY o.CreatedAt DESC
             """;
 
-        var orderDict = new Dictionary<int, Order>();
+        var recordDict = new Dictionary<int, (OrderRecord Order, List<OrderDetailRecord> Details)>();
 
         var command = new CommandDefinition(
             sql,
             transaction: session.Transaction,
             cancellationToken: cancellationToken);
 
-        await session.Connection.QueryAsync<Order, OrderDetail, Order>(
+        // Dapperで永続化モデルにマッピング
+        await session.Connection.QueryAsync<OrderRecord, OrderDetailRecord, OrderRecord>(
             command,
-            (order, detail) =>
+            (orderRecord, detailRecord) =>
             {
-                if (!orderDict.TryGetValue(order.Id, out var existing))
+                if (!recordDict.TryGetValue(orderRecord.Id, out var existing))
                 {
-                    existing = order;
-                    orderDict.Add(existing.Id, existing);
+                    existing = (orderRecord, new List<OrderDetailRecord>());
+                    recordDict.Add(orderRecord.Id, existing);
                 }
 
-                if (detail != null)
-                    existing.Details.Add(detail);
+                if (detailRecord != null)
+                {
+                    existing.Details.Add(detailRecord);
+                }
 
-                return existing;
+                return orderRecord;
             },
             splitOn: "Id"
         );
 
-        return orderDict.Values;
+        // Record → Domain 変換（Repository内部）
+        return recordDict.Values
+            .Select(r => OrderMapper.ToDomain(r.Order, r.Details));
+
 
         //// すべての注文を取得
         //const string orderSql = "SELECT * FROM Orders ORDER BY CreatedAt DESC";

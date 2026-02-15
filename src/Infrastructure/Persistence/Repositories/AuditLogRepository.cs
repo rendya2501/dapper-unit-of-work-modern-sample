@@ -1,7 +1,7 @@
 ﻿using Application.Common;
 using Application.Repositories;
 using Dapper;
-using Domain.AuditLog;
+using Shared.Models;
 
 namespace Infrastructure.Persistence.Repositories;
 
@@ -13,7 +13,7 @@ public class AuditLogRepository(IDbSession session)
 {
     /// <inheritdoc />
     public async Task CreateAsync(
-        AuditLog log, 
+        AuditLogRecord record, 
         CancellationToken cancellationToken = default)
     {
         const string sql = """
@@ -23,7 +23,7 @@ public class AuditLogRepository(IDbSession session)
 
         var command = new CommandDefinition(
             sql,
-            log,
+            record,
             session.Transaction,
             cancellationToken: cancellationToken);
 
@@ -31,7 +31,7 @@ public class AuditLogRepository(IDbSession session)
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<AuditLog>> GetAllAsync(
+    public async Task<IEnumerable<AuditLogRecord>> GetAllAsync(
         int limit = 100, 
         CancellationToken cancellationToken = default)
     {
@@ -47,6 +47,6 @@ public class AuditLogRepository(IDbSession session)
             session.Transaction,
             cancellationToken: cancellationToken);
 
-        return await session.Connection.QueryAsync<AuditLog>(command);
+        return await session.Connection.QueryAsync<AuditLogRecord>(command);
     }
 }

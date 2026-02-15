@@ -1,10 +1,10 @@
 ﻿using Application.Common;
 using Application.DTOs;
 using Application.Repositories;
-using Domain.AuditLog;
 using Domain.Common.Results;
 using Domain.Inventory;
 using Domain.Orders;
+using Shared.Models;
 
 namespace Application.Services;
 
@@ -23,9 +23,9 @@ namespace Application.Services;
 /// <param name="uow">Unit of Work（DI経由で注入）</param>
 public class OrderService(
     IUnitOfWork uow,
-    IInventoryRepository inventory,
-    IOrderRepository order,
-    IAuditLogRepository auditLog)
+    IInventoryRepository inventoryRepo,
+    IOrderRepository orderRepo,
+    IAuditLogRepository auditLogRepo)
 {
     /// <summary>
     /// 注文を作成します
@@ -41,57 +41,70 @@ public class OrderService(
     {
         return await uow.ExecuteInTransactionAsync(async () =>
         {
-            // 注文アイテムが空の場合はエラー
+            // 1. 注文アイテムチェック
             if (items.Count == 0)
             {
                 return Result.Failure<int>(OrderErrors.EmptyOrder());
             }
 
-            // 1. 注文集約を構築
-            var orderEntity = new Order
+            // 2. 注文集約を構築（Resultパターン）
+            var orderResult = Order.Create(customerId);
+            if (orderResult.IsFailure)
             {
-                CustomerId = customerId,
-                CreatedAt = DateTime.UtcNow
-            };
+                return Result.Failure<int>(orderResult.Error!);
+            }
 
-            // 2. 各商品の在庫確認と注文明細追加
+            var order = orderResult.Value;
+
+            // 3. 各商品の在庫確認と注文明細追加
             foreach (var item in items)
             {
-                var productEntity = await inventory.GetByProductIdAsync(item.ProductId);
-                if (productEntity is null)
+                // Repository → Record取得
+                var inventory = await inventoryRepo.GetByProductIdAsync(item.ProductId, cancellationToken);
+                if (inventory is null)
                 {
                     return Result.Failure<int>(InventoryErrors.NotFoundByProductId(item.ProductId));
                 }
 
-                // 在庫確認 (十分な在庫がない場合はエラー)
-                if (productEntity.Stock < item.Quantity)
+                // 4. 在庫減算（Resultパターン - try-catch不要）
+                var decreaseResult = inventory.Decrease(item.Quantity);
+                if (decreaseResult.IsFailure)
                 {
-                    return Result.Failure<int>(
-                        OrderErrors.InsufficientStock(item.ProductId, productEntity.Stock, item.Quantity));
+                    return Result.Failure<int>(decreaseResult.Error!);
                 }
 
-                // 在庫減算
-                await inventory.UpdateStockAsync(
+                // 5. 在庫更新
+                await inventoryRepo.UpdateStockAsync(
                     item.ProductId,
-                    productEntity.Stock - item.Quantity);
+                    inventory.Stock,
+                    cancellationToken);
 
-                // 注文明細を追加（集約ルートを通じて）
-                orderEntity.AddDetail(item.ProductId, item.Quantity, productEntity.UnitPrice);
+                // 6. 注文明細追加（Resultパターン）
+                var addDetailResult = order.AddDetail(
+                    new ProductId(item.ProductId),
+                    item.Quantity,
+                    inventory.UnitPrice);
+
+                if (addDetailResult.IsFailure)
+                {
+                    return Result.Failure<int>(addDetailResult.Error!);
+                }
             }
 
-            // 3. 注文を永続化（明細も一緒に保存される）
-            var orderId = await order.CreateAsync(orderEntity);
+            // 7. Repository呼び出し（変換はRepository内部）
+            var orderId = await orderRepo.CreateAsync(order, cancellationToken);
 
-            // 4. 監査ログ記録
-            await auditLog.CreateAsync(new AuditLog
+            // 8. 監査ログ記録（Shared Kernel使用）
+            await auditLogRepo.CreateAsync(new AuditLogRecord
             {
                 Action = "ORDER_CREATED",
                 Details = $"OrderId={orderId}, CustomerId={customerId}, " +
-                    $"Items={items.Count}, Total={orderEntity.TotalAmount:C}",
+                    $"Items={items.Count}, Total={order.TotalAmount:C}",
                 CreatedAt = DateTime.UtcNow
-            });
+            }, cancellationToken);
 
             return Result.Success(orderId);
+
         }, cancellationToken);
     }
 
@@ -103,7 +116,8 @@ public class OrderService(
     public async Task<Result<IEnumerable<Order>>> GetAllOrdersAsync(
         CancellationToken cancellationToken = default)
     {
-        var orders = await order.GetAllAsync(cancellationToken);
+        var orders = await orderRepo.GetAllAsync(cancellationToken);
+
         return Result.Success(orders);
     }
 
@@ -116,11 +130,13 @@ public class OrderService(
     public async Task<Result<Order>> GetOrderByIdAsync(int id,
         CancellationToken cancellationToken = default)
     {
-        var orderEntity = await order.GetByIdAsync(id, cancellationToken);
-        if (orderEntity is null)
+        var order = await orderRepo.GetByIdAsync(id, cancellationToken);
+
+        if (order is null)
         {
             return Result.Failure<Order>(OrderErrors.NotFoundByOrderId(id));
         }
-        return Result.Success(orderEntity);
+
+        return Result.Success(order);
     }
 }

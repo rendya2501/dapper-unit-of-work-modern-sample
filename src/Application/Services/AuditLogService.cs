@@ -1,6 +1,6 @@
 ﻿using Application.Repositories;
-using Domain.AuditLog;
 using Domain.Common.Results;
+using Shared.Models;
 
 namespace Application.Services;
 
@@ -15,11 +15,12 @@ public class AuditLogService(IAuditLogRepository repository)
     /// <param name="limit">取得件数の上限（デフォルト: 100）</param>
     /// <param name="cancellationToken">キャンセルトークン</param>
     /// <returns>監査ログのリスト（新しい順）</returns>
-    public async Task<Result<IEnumerable<AuditLog>>> GetAllAsync(
+    public async Task<Result<IEnumerable<AuditLogRecord>>> GetAllAsync(
         int limit = 100,
         CancellationToken cancellationToken = default)
     {
         var auditLogs = await repository.GetAllAsync(limit, cancellationToken);
+
         return Result.Success(auditLogs);
     }
 }

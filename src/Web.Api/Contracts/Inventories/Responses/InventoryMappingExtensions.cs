@@ -14,7 +14,7 @@ public static class InventoryMappingExtensions
     /// <returns>在庫情報のレスポンスDTO</returns>
     public static InventoryResponse ToResponse(this Inventory inventory) =>
         new(
-            inventory.ProductId,
+            (int)inventory.ProductId,
             inventory.ProductName,
             inventory.Stock,
             inventory.UnitPrice);

@@ -14,7 +14,7 @@ public static class OrderMappingExtensions
     /// <returns>注文のレスポンスDTO</returns>
     public static OrderResponse ToResponse(this Order order) =>
         new(
-            order.Id,
+            (int)order.Id,
             order.CustomerId,
             order.CreatedAt,
             order.TotalAmount,
@@ -27,7 +27,7 @@ public static class OrderMappingExtensions
     /// <returns>注文明細のレスポンスDTO</returns>
     public static OrderDetailResponse ToResponse(this OrderDetail detail) =>
         new(
-            detail.ProductId,
+            (int)detail.ProductId,
             detail.Quantity,
             detail.UnitPrice,
             detail.SubTotal);

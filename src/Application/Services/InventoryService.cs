@@ -1,8 +1,8 @@
 ﻿using Application.Common;
 using Application.Repositories;
-using Domain.AuditLog;
 using Domain.Common.Results;
 using Domain.Inventory;
+using Shared.Models;
 
 namespace Application.Services;
 
@@ -14,8 +14,8 @@ namespace Application.Services;
 /// </remarks>
 public class InventoryService(
     IUnitOfWork uow,
-    IInventoryRepository inventory,
-    IAuditLogRepository auditLog)
+    IInventoryRepository inventoryRepo,
+    IAuditLogRepository auditLogRepo)
 {
     /// <summary>
     /// すべての在庫を取得します
@@ -23,7 +23,8 @@ public class InventoryService(
     public async Task<Result<IEnumerable<Inventory>>> GetAllAsync(
         CancellationToken cancellationToken = default)
     {
-        var inventories = await inventory.GetAllAsync(cancellationToken);
+        var inventories = await inventoryRepo.GetAllAsync(cancellationToken);
+
         return Result.Success(inventories);
     }
 
@@ -34,12 +35,14 @@ public class InventoryService(
         int productId,
         CancellationToken cancellationToken = default)
     {
-        var inventoryEntity = await inventory.GetByProductIdAsync(productId, cancellationToken);
-        if (inventoryEntity is null)
+        var inventory = await inventoryRepo.GetByProductIdAsync(productId, cancellationToken);
+
+        if (inventory is null)
         {
             return Result.Failure<Inventory>(InventoryErrors.NotFoundByProductId(productId));
         }
-        return Result.Success(inventoryEntity);
+
+        return Result.Success(inventory);
     }
 
     /// <summary>
@@ -58,14 +61,19 @@ public class InventoryService(
     {
         return await uow.ExecuteInTransactionAsync(async () =>
         {
-            var productId = await inventory.CreateAsync(new Inventory
+            // ドメインモデルのファクトリメソッドで作成（Resultパターン）
+            var createResult = Inventory.Create(productName, stock, unitPrice);
+            if (createResult.IsFailure)
             {
-                ProductName = productName,
-                Stock = stock,
-                UnitPrice = unitPrice
-            }, cancellationToken);
+                return Result.Failure<int>(createResult.Error!);
+            }
 
-            await auditLog.CreateAsync(new AuditLog
+            var inventory = createResult.Value;
+
+            var productId = await inventoryRepo.CreateAsync(inventory, cancellationToken);
+
+            // 監査ログ記録
+            await auditLogRepo.CreateAsync(new AuditLogRecord
             {
                 Action = "INVENTORY_CREATED",
                 Details = $"ProductId={productId}, Name={productName}, Stock={stock}, Price={unitPrice}",
@@ -73,6 +81,7 @@ public class InventoryService(
             }, cancellationToken);
 
             return Result.Success(productId);
+
         }, cancellationToken);
     }
 
@@ -93,15 +102,24 @@ public class InventoryService(
     {
         return await uow.ExecuteInTransactionAsync(async () =>
         {
-            var existing = await inventory.GetByProductIdAsync(productId, cancellationToken);
-            if (existing is null)
+            var inventory = await inventoryRepo.GetByProductIdAsync(productId, cancellationToken);
+            if (inventory is null)
             {
                 return Result.Failure(InventoryErrors.NotFoundByProductId(productId));
             }
 
-            await inventory.UpdateAsync(productId, productName, stock, unitPrice, cancellationToken);
+            // ドメインモデルのビジネスロジックで更新（Resultパターン）
+            var updateResult = inventory.Update(productName, stock, unitPrice);
+            if (updateResult.IsFailure)
+            {
+                return updateResult;
+            }
 
-            await auditLog.CreateAsync(new AuditLog
+            // Repository で永続化
+            await inventoryRepo.UpdateAsync(inventory, cancellationToken);
+
+            // 監査ログ記録
+            await auditLogRepo.CreateAsync(new AuditLogRecord
             {
                 Action = "INVENTORY_UPDATED",
                 Details = $"ProductId={productId}, Name={productName}, Stock={stock}, Price={unitPrice}",
@@ -109,6 +127,7 @@ public class InventoryService(
             }, cancellationToken);
 
             return Result.Success();
+
         }, cancellationToken);
     }
 
@@ -123,22 +142,24 @@ public class InventoryService(
     {
         return await uow.ExecuteInTransactionAsync(async () =>
         {
-            var existing = await inventory.GetByProductIdAsync(productId, cancellationToken);
-            if (existing is null)
+            var inventory = await inventoryRepo.GetByProductIdAsync(productId, cancellationToken);
+            if (inventory is null)
             {
                 return Result.Failure(InventoryErrors.NotFoundByProductId(productId));
             }
 
-            await inventory.DeleteAsync(productId, cancellationToken);
+            await inventoryRepo.DeleteAsync(productId, cancellationToken);
 
-            await auditLog.CreateAsync(new AuditLog
+            // 監査ログ記録
+            await auditLogRepo.CreateAsync(new AuditLogRecord
             {
                 Action = "INVENTORY_DELETED",
-                Details = $"ProductId={productId}, Name={existing.ProductName}",
+                Details = $"ProductId={productId}, Name={inventory.ProductName}",
                 CreatedAt = DateTime.UtcNow
             }, cancellationToken);
 
             return Result.Success();
+
         }, cancellationToken);
     }
 }

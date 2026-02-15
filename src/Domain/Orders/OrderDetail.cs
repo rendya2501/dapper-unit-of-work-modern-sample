@@ -1,47 +1,85 @@
-﻿namespace Domain.Orders;
+﻿using Domain.Inventory;
+
+namespace Domain.Orders;
 
 /// <summary>
-/// 注文明細エンティティ
+/// 注文明細エンティティ（純粋ドメインモデル）
 /// </summary>
 /// <remarks>
 /// <para><strong>値オブジェクトに近い性質</strong></para>
 /// <para>
-/// OrderDetail は Order の一部であり、Order なしでは意味を持たない。
-/// 独立した Repository は存在せず、Order を通じてのみ永続化される。
+/// OrderDetail は Order の一部であり、Order なしでは意味を持ちません。
+/// Orderを通じてのみ作成・管理されます。
 /// </para>
 /// </remarks>
 public class OrderDetail
 {
-    /// <summary>
-    /// 注文明細ID
-    /// </summary>
-    public int Id { get; set; }
+    public OrderId Id { get; set; }
 
     /// <summary>
-    /// 注文ID（外部キー）
+    /// 商品ID（Value Object）
     /// </summary>
-    public int OrderId { get; set; }
-
-    /// <summary>
-    /// 商品ID
-    /// </summary>
-    public int ProductId { get; set; }
+    public ProductId ProductId { get; private set; }
 
     /// <summary>
     /// 数量
     /// </summary>
-    public int Quantity { get; set; }
+    public int Quantity { get; private set; }
 
     /// <summary>
-    /// 単価
+    /// 単価（注文時点の価格）
     /// </summary>
-    public decimal UnitPrice { get; set; }
+    public decimal UnitPrice { get; private set; }
 
     /// <summary>
-    /// 小計
+    /// 小計（計算プロパティ）
+    /// </summary>
+    public decimal SubTotal => UnitPrice * Quantity;
+
+
+    /// <summary>
+    /// プライベートコンストラクタ
     /// </summary>
     /// <remarks>
-    /// 計算プロパティ。DB には永続化しない。
+    /// ファクトリメソッド Create または Mapper からのみ生成可能。
     /// </remarks>
-    public decimal SubTotal => UnitPrice * Quantity;
+    private OrderDetail() { }
+
+
+    /// <summary>
+    /// 注文明細を作成します（ファクトリメソッド）
+    /// </summary>
+    /// <param name="productId">商品ID</param>
+    /// <param name="quantity">数量</param>
+    /// <param name="unitPrice">単価</param>
+    /// <returns>新規作成された注文明細</returns>
+    public static OrderDetail Create(ProductId productId, int quantity, decimal unitPrice)
+    {
+        return new OrderDetail
+        {
+            ProductId = productId,
+            Quantity = quantity,
+            UnitPrice = unitPrice
+        };
+    }
+
+    /// <summary>
+    /// 永続化層からの復元用ファクトリメソッド
+    /// </summary>
+    /// <param name="productId">商品ID</param>
+    /// <param name="quantity">数量</param>
+    /// <param name="unitPrice">単価</param>
+    /// <returns>復元された注文明細</returns>
+    /// <remarks>
+    /// Infrastructure層のMapperから呼び出されます。
+    /// </remarks>
+    public static OrderDetail Restore(ProductId productId, int quantity, decimal unitPrice)
+    {
+        return new OrderDetail
+        {
+            ProductId = productId,
+            Quantity = quantity,
+            UnitPrice = unitPrice
+        };
+    }
 }

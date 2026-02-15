@@ -1,80 +1,154 @@
-﻿namespace Domain.Orders;
+﻿using Domain.Common.Results;
+using Domain.Inventory;
+
+namespace Domain.Orders;
 
 /// <summary>
-/// 注文エンティティ（集約ルート）
+/// 注文エンティティ（純粋ドメインモデル）
 /// </summary>
 /// <remarks>
-/// <para><strong>集約ルート (Aggregate Root) の責務</strong></para>
+/// <para><strong>設計原則</strong></para>
 /// <list type="bullet">
-/// <item>Order は OrderDetail の親エンティティであり、集約の境界を定義</item>
-/// <item>OrderDetail は Order を通じてのみ操作される</item>
-/// <item>Repository は集約ルート（Order）に対してのみ存在する</item>
-/// <item>OrderDetail 単独での永続化は許可されない</item>
+/// <item>データベース構造の知識を持たない</item>
+/// <item>Value Objectを使用（OrderId）</item>
+/// <item>不変性を重視（privateセッター）</item>
+/// <item>ビジネスルールをメソッドで表現</item>
+/// <item>集約ルートとして整合性を保証</item>
 /// </list>
 /// 
-/// <para><strong>不変条件の維持</strong></para>
+/// <para><strong>Infrastructure層との関係</strong></para>
 /// <para>
-/// 注文明細の追加・削除は Order を通じて行われることで、
-/// 注文全体の整合性（合計金額、数量チェックなど）が保証される。
+/// このクラスはDBテーブル構造を知りません。
+/// Infrastructure層のMapperが永続化モデル（OrderRecord）との変換を担当します。
 /// </para>
 /// </remarks>
 public class Order
 {
+    private readonly List<OrderDetail> _details = [];
+
     /// <summary>
-    /// 注文ID
+    /// 注文ID（Value Object）
     /// </summary>
-    public int Id { get; set; }
+    /// <remarks>
+    /// DB由来のIDですが、Value Objectでラップすることでドメインの概念として扱います。
+    /// </remarks>
+    public OrderId Id { get; private set; }
 
     /// <summary>
     /// 顧客ID
     /// </summary>
-    public int CustomerId { get; set; }
+    /// <remarks>
+    /// TODO: 将来的にはCustomerIdというValue Objectにすべき
+    /// </remarks>
+    public int CustomerId { get; private set; }
 
     /// <summary>
     /// 注文日時
     /// </summary>
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; private set; }
 
     /// <summary>
-    /// 注文明細のコレクション
+    /// 注文明細のコレクション（読み取り専用）
     /// </summary>
     /// <remarks>
-    /// 注文明細は Order を通じてのみアクセスされる。
-    /// 外部から直接操作されないよう、setter は private に設定。
+    /// 外部から直接操作されないよう、読み取り専用リストとして公開。
+    /// 明細の追加・削除はメソッド経由で行う。
     /// </remarks>
-    public List<OrderDetail> Details { get; private set; } = new();
+    public IReadOnlyList<OrderDetail> Details => _details.AsReadOnly();
 
     /// <summary>
-    /// 注文合計金額
+    /// 注文合計金額（計算プロパティ）
+    /// </summary>
+    public decimal TotalAmount => _details.Sum(d => d.SubTotal);
+
+
+    /// <summary>
+    /// プライベートコンストラクタ（永続化層からの復元用）
     /// </summary>
     /// <remarks>
-    /// 注文明細から自動計算される値。
-    /// DB には永続化せず、取得時に計算する。
+    /// Mapperからのみ呼び出されることを想定。
+    /// 新規作成にはファクトリメソッド Create を使用。
     /// </remarks>
-    public decimal TotalAmount => Details.Sum(d => d.UnitPrice * d.Quantity);
+    private Order() { }
+
+
+    /// <summary>
+    /// 新しい注文を作成します（ファクトリメソッド）
+    /// </summary>
+    /// <param name="customerId">顧客ID</param>
+    /// <returns>成功時は新規作成された注文、失敗時はエラー</returns>
+    public static Result<Order> Create(int customerId)
+    {
+        if (customerId <= 0)
+        {
+            return Result.Failure<Order>(Error.Problem(
+                "Order.InvalidCustomerId",
+                "Customer ID must be greater than 0."));
+        }
+
+        return Result.Success(new Order
+        {
+            CustomerId = customerId,
+            CreatedAt = DateTime.UtcNow
+        });
+    }
 
     /// <summary>
     /// 注文明細を追加します
     /// </summary>
-    /// <param name="productId">商品ID</param>
+    /// <param name="productId">商品ID（Value Object）</param>
     /// <param name="quantity">数量</param>
     /// <param name="unitPrice">単価</param>
-    /// <remarks>
-    /// ドメインロジック（ビジネスルール）をエンティティ内で実装。
-    /// 例: 数量は1以上でなければならない。
-    /// </remarks>
-    /// <exception cref="ArgumentException">数量が1未満の場合</exception>
-    public void AddDetail(int productId, int quantity, decimal unitPrice)
+    /// <returns>成功または失敗</returns>
+    public Result AddDetail(ProductId productId, int quantity, decimal unitPrice)
     {
         if (quantity < 1)
-            throw new ArgumentException("Quantity must be at least 1.", nameof(quantity));
-
-        Details.Add(new OrderDetail
         {
-            OrderId = Id,
-            ProductId = productId,
-            Quantity = quantity,
-            UnitPrice = unitPrice
-        });
+            return Result.Failure(Error.Problem(
+                "OrderDetail.InvalidQuantity",
+                "Quantity must be at least 1."));
+        }
+
+        if (unitPrice <= 0)
+        {
+            return Result.Failure(Error.Problem(
+                "OrderDetail.InvalidUnitPrice",
+                "Unit price must be greater than 0."));
+        }
+
+        var detail = OrderDetail.Create(productId, quantity, unitPrice);
+        _details.Add(detail);
+
+        return Result.Success();
+    }
+
+
+    /// <summary>
+    /// IDを設定します（永続化層からのみ呼び出し）
+    /// </summary>
+    /// <param name="id">注文ID</param>
+    /// <remarks>
+    /// このメソッドはinternalであり、Infrastructure層のMapperからのみ呼び出されます。
+    /// ドメイン層からは呼び出せません。
+    /// </remarks>
+    internal void SetId(OrderId id) => Id = id;
+
+    /// <summary>
+    /// 作成日時を設定します（永続化層からのみ呼び出し）
+    /// </summary>
+    /// <param name="createdAt">作成日時</param>
+    internal void SetCreatedAt(DateTime createdAt) => CreatedAt = createdAt;
+
+    /// <summary>
+    /// 明細リストを設定します（永続化層からのみ呼び出し）
+    /// </summary>
+    /// <param name="details">注文明細のリスト</param>
+    /// <remarks>
+    /// DB から復元する際に Mapper が使用します。
+    /// </remarks>
+    internal void SetDetails(IEnumerable<OrderDetail> details)
+    {
+        _details.Clear();
+        _details.AddRange(details);
     }
 }

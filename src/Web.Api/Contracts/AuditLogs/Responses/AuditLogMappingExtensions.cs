@@ -1,4 +1,4 @@
-﻿using Domain.AuditLog;
+﻿using Shared.Models;
 
 namespace Web.Api.Contracts.AuditLogs.Responses;
 
@@ -12,7 +12,7 @@ public static class AuditLogMappingExtensions
     /// </summary>
     /// <param name="log">変換対象の監査ログ</param>
     /// <returns>監査ログのレスポンスDTO</returns>
-    public static AuditLogResponse ToResponse(this AuditLog log) =>
+    public static AuditLogResponse ToResponse(this AuditLogRecord log) =>
         new(
             log.Id,
             log.Action,
